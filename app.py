@@ -2,6 +2,7 @@ from flask import Flask, render_template, request
 from import_df import DataHandler
 from interno import InternoGenerator
 import os
+import webbrowser
 
 app = Flask(__name__)
 
@@ -52,5 +53,7 @@ def gerar_internos():
 
     return render_template('sucesso.html')
 
+webbrowser.open('http://127.0.0.1:5000')
+
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='127.0.0.1', port=5000)
