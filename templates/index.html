@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gerador de Internos</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <h1>Bem-vindo ao gerador de Internos de Alteração de Horário Docentes da Escola Modesto</h1>
+
+  <div class="instruction">
+    <p>
+      Antes de seguir com o programa, confira as etapas:
+    </p>
+    <ol>
+      <li>Download da planilha de horários alterados, do Google Drive, no formato CSV, o arquivo deve se chamar 'alteracao'</li>
+      <li>Download da planilha de horários homologados, do Google Drive, no formato CSV, o arquivo deve se chamar 'homologado'</li>
+      <li>O programa deve estar na mesma pasta dos arquivos baixados anteriormente</li>
+      <li>Nesta pasta deve haver uma outra pasta chamada internos, que receberá os internos novos</li>
+    </ol>
+  </div>
+
+  <form method="POST" action="{{ url_for('gerar_internos') }}" class="form" enctype="multipart/form-data">
+    
+    <label for="alteracao">Selecione o arquivo de alteração de horários:</label>
+    <input type="file" id="alteracao" name="alteracao">
+
+    <label for="homologado">Selecione o arquivo de horários homologados:</label>
+    <input type="file" id="homologado" name="homologado">
+
+    <label for="mes_var">Informe a qual mês esse pagamento é referente:</label>
+    <select id="mes_var" name="mes_var">
+      {% for key, value in dict_mes.items() %}
+      <option value="{{ key }}">{{ value }}</option>
+      {% endfor %}
+    </select>
+
+    <label for="numero_var">Digite o número do Primeiro Interno:</label>
+    <input type="number" id="numero_var" name="numero_var">
+
+    <label for="dia_var">Digite o dia de envio do Interno:</label>
+    <input type="number" id="dia_var" name="dia_var">
+
+    <label for="responsavel_var">Quem é o responsável pela assinatura dos internos?</label>
+    <select id="responsavel_var" name="responsavel_var">
+      <option value="Silvia Elaine">Silvia Elaine</option>
+      <option value="Anelisa Luciene">Anelisa Luciene</option>
+      <option value="Outros">Outros</option>
+    </select>
+
+    <button type="submit">Gerar Internos</button>
+  </form>
+</body>
+</html>
