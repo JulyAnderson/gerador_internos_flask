@@ -4,6 +4,10 @@ from docx.shared import Pt
 from docx.enum.table import WD_ALIGN_VERTICAL
 from datetime import datetime, time, date
 
+#Adaptação para uso com pyinstaller
+import sys
+import os
+
 class InternoGenerator:
     def __init__(self, data_handler, numero_inicial, dia_de_envio, mes_pagamento, responsavel_assinatura):
         self.data_handler = data_handler
@@ -29,7 +33,17 @@ class InternoGenerator:
         }
 
     def criar_documento_interno(self):
-        self.documento = Document('templates/modelo.docx')
+        #self.documento = Document('modelo.docx')
+        #cria o modelo para funcionar com o pyinstaller 
+        if getattr(sys, 'frozen', False):
+            # Caminho do arquivo dentro do pacote PyInstaller
+            bundle_dir = sys._MEIPASS
+        else:
+            # Caminho do arquivo em desenvolvimento
+            bundle_dir = os.path.abspath(os.path.dirname(__file__))
+
+        modelo_path = os.path.join(bundle_dir, 'modelo.docx')
+        self.documento = Document(modelo_path)
 
     def criar_numero_interno(self):
         numero_interno = self.documento.add_paragraph()

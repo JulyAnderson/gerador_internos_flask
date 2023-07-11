@@ -1,10 +1,31 @@
+import sys
+sys.setrecursionlimit(1500)
+
 from flask import Flask, render_template, request
 from import_df import DataHandler
 from interno import InternoGenerator
 import os
 import webbrowser
 
-app = Flask(__name__)
+
+#modificações para o pyinstaller
+import os
+
+# Obtenha o diretório atual do script
+base_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Define o caminho absoluto para os diretórios de templates e arquivos estáticos
+template_dir = os.path.join(base_dir, 'templates')
+static_dir = os.path.join(base_dir, 'static')
+
+# Configura o Flask para usar os caminhos definidos
+app = Flask(__name__, template_folder=template_dir, static_folder=static_dir)
+
+
+# Define o caminho para a pasta temporária usada pelo Flask- Modificações para o pyinstaller
+app.config['TEMPLATES_AUTO_RELOAD'] = True
+app.config['EXPLAIN_TEMPLATE_LOADING'] = True
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route('/')
 def index():
