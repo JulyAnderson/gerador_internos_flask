@@ -201,3 +201,41 @@ Horário Homologado:""")
         self.numero_atual += 1 
         nome_interno = f'Interno nº{self.numero_atual}-{self.ano_atual} - Alteração de horário de {homologado_filtrado.iloc[0]["Nome"]}-{self.dict_mes[self.mes_pagamento]}{self.ano_atual}.docx'
         self.documento.save(f'interno/{nome_interno}')
+
+
+class CargaGenerator:
+    def __init__(self, data_handler,mes_pagamento):
+        self.data_handler = data_handler
+        self.mes_pagamento = mes_pagamento
+        self.ano_atual = datetime.now().year
+        self.dict_mes = {
+            1: 'janeiro',
+            2: 'fevereiro',
+            3: 'março',
+            4: 'abril',
+            5: 'maio',
+            6: 'junho',
+            7: 'julho',
+            8: 'agosto',
+            9: 'setembro',
+            10: 'outubro',
+            11: 'novembro',
+            12: 'dezembro'
+        }
+
+    def criar_carga(self):
+        carga_mensal = self.documento.add_paragraph()
+        carga_mensal.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+        carga_mensal_run = carga_mensal.add_run(f"Carga Suplementar {self.dict_mes[self.mes_pagamento]}")
+        carga_mensal_run.font.size = Pt(12)
+
+        table_carga = self.documento.add_table(rows=carga_mensal.shape[0] + 1, cols=carga_mensal.shape[1])
+        table_carga.style = 'Table Grid'  # Add borders to the table
+
+        # Set alignment for each cell in the table
+        for row in table_carga.rows:
+            for cell in row.cells:
+                cell.vertical_alignment = WD_ALIGN_VERTICAL.CENTER
+                cell.paragraphs[0].paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+
+        self.documento.save(f'carga/Carga Suplementar{self.dict_mes[self.mes_pagamento]}-{self.ano_atual}')
