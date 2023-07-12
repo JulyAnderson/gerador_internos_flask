@@ -3,7 +3,7 @@ sys.setrecursionlimit(1500)
 
 from flask import Flask, render_template, request
 from import_df import DataHandler
-from interno import InternoGenerator
+from interno import InternoGenerator, CargaGenerator
 import os
 import webbrowser
 
@@ -43,6 +43,19 @@ def index():
         11: 'novembro',
         12: 'dezembro'
     }
+
+    if request.method == 'POST':
+        if 'botao1' in request.form:
+            # Lógica para o botão1
+            gerar_internos()
+        elif 'botao2' in request.form:
+            # Lógica para o botão2
+            gerar_carga()
+        elif 'botao3' in request.form:
+            # Lógica para o botão2
+            gerar_internos()
+            gerar_carga()
+
     return render_template('index.html', dict_mes=dict_mes)
 
 @app.route('/gerar_internos', methods=['POST'])
@@ -73,6 +86,24 @@ def gerar_internos():
         interno_generator.gerar_interno(matricula)
 
     return render_template('sucesso.html')
+
+
+@app.route('/gerar_carga', methods=['POST'])
+def gerar_carga():
+    mes_pagamento = int(request.form['mes_var'])
+    data_handler = DataHandler('alteracao.csv', 'homologado.csv')
+    data_handler.import_data()
+
+    carga_generator = CargaGenerator(data_handler, mes_pagamento)
+
+    # Verificar se a pasta 'internos' existe, caso contrário, criar
+    if not os.path.exists('carga'):
+        os.makedirs('carga')
+   
+    
+    carga_generator.gerar_interno()
+
+
 
 webbrowser.open('http://127.0.0.1:5000')
 
