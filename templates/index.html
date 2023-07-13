@@ -5,8 +5,8 @@
   <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <h1>Bem-vindo ao gerador de Internos de Alteração de Horário Docentes da Escola Modesto</h1>
-
+  <h1>Bem-vindo ao gerador de Pagamento Docentes da Escola Modesto</h1>
+  <h2>{{mensagem_sucesso}}</h2>
   <div class="instruction">
     <p>
       Antes de seguir com o programa, confira as etapas:
@@ -21,7 +21,7 @@
    </ol>
   </div>
 
-  <form method="POST" action="{{ url_for('gerar_internos') }}" class="form" enctype="multipart/form-data">
+  <form method="POST" action="{{ url_for('processar_formulario') }}" class="form" enctype="multipart/form-data">
     
     <label for="alteracao">Selecione o arquivo de alteração de horários:</label>
     <input type="file" id="alteracao" name="alteracao">
@@ -48,10 +48,9 @@
       <option value="Anelisa Luciene">Anelisa Luciene</option>
       <option value="Outros">Outros</option>
     </select>
-
-    <button type="submit" name="botao1" value="botao1">Gerar Internos</button> 
-    <button type="submit" name="botao2" value="botao2">Gerar Carga Suplementar</button>
-    <button type="submit" name="botao3" value="botao3">Gerar Internos e Carga Suplementar</button>
+    <input type="hidden" name="acao" value="">
+    <button type="submit" name="gerar_internos" value="gerar_internos" onclick="document.querySelector('input[name=acao]').value = 'gerar_internos';">Gerar Internos</button> 
+    <button type="submit" name="gerar_cargas" value="gerar_cargas" onclick="document.querySelector('input[name=acao]').value = 'gerar_cargas';">Gerar Carga Suplementar</button>
   </form>
 </body>
 </html>

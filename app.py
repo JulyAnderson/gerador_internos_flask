@@ -1,15 +1,12 @@
 import sys
 sys.setrecursionlimit(1500)
 
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, url_for
 from import_df import DataHandler
-from interno import InternoGenerator, CargaGenerator
+from interno import InternoGenerator
+from cargas_suplementar import CargaGenerator
 import os
 import webbrowser
-
-
-#modificações para o pyinstaller
-import os
 
 # Obtenha o diretório atual do script
 base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -27,9 +24,7 @@ app.config['TEMPLATES_AUTO_RELOAD'] = True
 app.config['EXPLAIN_TEMPLATE_LOADING'] = True
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
-@app.route('/')
-def index():
-    dict_mes = {
+dict_mes = {
         1: 'janeiro',
         2: 'fevereiro',
         3: 'março',
@@ -44,21 +39,11 @@ def index():
         12: 'dezembro'
     }
 
-    if request.method == 'POST':
-        if 'botao1' in request.form:
-            # Lógica para o botão1
-            gerar_internos()
-        elif 'botao2' in request.form:
-            # Lógica para o botão2
-            gerar_carga()
-        elif 'botao3' in request.form:
-            # Lógica para o botão2
-            gerar_internos()
-            gerar_carga()
+@app.route('/')
+def index():
+    return render_template('index.html', dict_mes=dict_mes, mensagem_sucesso='')
 
-    return render_template('index.html', dict_mes=dict_mes)
-
-@app.route('/gerar_internos', methods=['POST'])
+@app.route('/gerar_interno', methods=['POST'])
 def gerar_internos():
     alteracao = request.files['alteracao']
     homologado = request.files['homologado']
@@ -79,33 +64,76 @@ def gerar_internos():
         os.makedirs('interno')
 
     # Obter as matrículas filtradas
+    data_handler.adiciona_filtros_internos()
     matriculas_filtradas = data_handler.get_filtered_matriculas()
 
     # Gerar documentos internos para cada matrícula filtrada
     for matricula in matriculas_filtradas:
         interno_generator.gerar_interno(matricula)
 
-    return render_template('sucesso.html')
+    excluir_arquivos_csv()
 
+    mensagem = "Obrigado por usar o Gerador de Pagamento. Seus Internos foram Gerados com Sucesso!"
+
+    return render_template('index.html', mensagem_sucesso = mensagem, dict_mes=dict_mes)
 
 @app.route('/gerar_carga', methods=['POST'])
-def gerar_carga():
-    mes_pagamento = int(request.form['mes_var'])
+def gerar_cargas():
+    alteracao = request.files['alteracao']
+    homologado = request.files['homologado']
+    mes_pagamento = int(request.form['mes_var'])     
+
+    alteracao.save('alteracao.csv')
+    homologado.save('homologado.csv')
+
     data_handler = DataHandler('alteracao.csv', 'homologado.csv')
-    data_handler.import_data()
+    data_handler.import_data()  
 
     carga_generator = CargaGenerator(data_handler, mes_pagamento)
 
-    # Verificar se a pasta 'internos' existe, caso contrário, criar
+    # Verificar se a pasta 'carga' existe, caso contrário, criar
     if not os.path.exists('carga'):
         os.makedirs('carga')
-   
+
+    carga = data_handler.carga_suplementar(mes_pagamento)   
+
+    carga_generator.criar_carga(carga)
+ 
+    excluir_arquivos_csv()
+
+    mensagem = "Obrigado por usar o Gerador de Pagamento. As Cargas Suplementares foram Geradas com Sucesso!"
+
+    return render_template('index.html', mensagem_sucesso = mensagem, dict_mes=dict_mes)
+
+
+def excluir_arquivos_csv():
+    # Obtenha o caminho para os arquivos CSV gerados
+    alteracao = "alteracao.csv"
+    homologado = "homologado.csv"
+
+    # Exclua os arquivos CSV se eles existirem
+    if os.path.exists(alteracao):
+        os.remove(alteracao)
     
-    carga_generator.gerar_interno()
-
-
+    if os.path.exists(homologado):
+        os.remove(homologado)
+    
+@app.route('/processar', methods=['POST'])
+def processar_formulario():
+   
+    if request.form['acao'] == 'gerar_internos':
+        gerar_internos()
+        mensagem_sucesso = "Internos gerados com sucesso!"
+    elif request.form['acao'] == 'gerar_cargas':
+        gerar_cargas()
+        mensagem_sucesso = "Carga suplementar gerada com sucesso!"
+    
+    return render_template('index.html', dict_mes=dict_mes, mensagem_sucesso=mensagem_sucesso)
+  
 
 webbrowser.open('http://127.0.0.1:5000')
 
-if __name__ == '__main__':
-    app.run(host='127.0.0.1', port=5000)
+# if __name__ == '__main__':
+#     app.run(host='127.0.0.1', port=5000)
+
+app.run(debug=True)
