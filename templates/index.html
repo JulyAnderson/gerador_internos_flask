@@ -6,29 +6,10 @@
 </head>
 <body>
   <h1>Bem-vindo ao gerador de Pagamento Docentes da Escola Modesto</h1>
+
   <h2>{{mensagem_sucesso}}</h2>
-  <div class="instruction">
-    <p>
-      Antes de seguir com o programa, confira as etapas:
-    </p>
-    <ol>
-      <li>Faça o download do arquivo de alteração de horários no formato .csv: 
-        <a href="https://docs.google.com/spreadsheets/d/1Yuygb6lu4j65KBxw35vzFFb52u_R2rORt0rcdVFTJR0/edit?usp=sharing" target="_blank">Alteração de Horários Aqui!</a>
-      </li>
-      <li>Faça o download do arquivo com os horários docentes homologado no formato .csv: 
-        <a href="https://docs.google.com/spreadsheets/d/1iP9gi0wUD5N1qq51emizqnvojxfq_boT/edit?usp=sharing&ouid=112640400016012005391&rtpof=true&sd=true" target="_blank">Horários Homologados Aqui!</a> 
-      </li>
-   </ol>
-  </div>
-
+  
   <form method="POST" action="{{ url_for('processar_formulario') }}" class="form" enctype="multipart/form-data">
-    
-    <label for="alteracao">Selecione o arquivo de alteração de horários:</label>
-    <input type="file" id="alteracao" name="alteracao">
-
-    <label for="homologado">Selecione o arquivo de horários homologados:</label>
-    <input type="file" id="homologado" name="homologado">
-
     <label for="mes_var">Informe a qual mês esse pagamento é referente:</label>
     <select id="mes_var" name="mes_var">
       {% for key, value in dict_mes.items() %}

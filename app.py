@@ -45,17 +45,12 @@ def index():
 
 @app.route('/gerar_interno', methods=['POST'])
 def gerar_internos():
-    alteracao = request.files['alteracao']
-    homologado = request.files['homologado']
     mes_pagamento = int(request.form['mes_var'])
     numero_interno = int(request.form['numero_var'])
     dia_envio = int(request.form['dia_var'])
     responsavel_assinatura = request.form['responsavel_var']
 
-    alteracao.save('alteracao.csv')
-    homologado.save('homologado.csv')
-
-    data_handler = DataHandler('alteracao.csv', 'homologado.csv')
+    data_handler = DataHandler()
     data_handler.import_data()
     interno_generator = InternoGenerator(data_handler, numero_interno, dia_envio, mes_pagamento, responsavel_assinatura)
 
@@ -71,22 +66,16 @@ def gerar_internos():
     for matricula in matriculas_filtradas:
         interno_generator.gerar_interno(matricula)
 
-    excluir_arquivos_csv()
-
+ 
     mensagem = "Obrigado por usar o Gerador de Pagamento. Seus Internos foram Gerados com Sucesso!"
 
     return render_template('index.html', mensagem_sucesso = mensagem, dict_mes=dict_mes)
 
 @app.route('/gerar_carga', methods=['POST'])
 def gerar_cargas():
-    alteracao = request.files['alteracao']
-    homologado = request.files['homologado']
     mes_pagamento = int(request.form['mes_var'])     
 
-    alteracao.save('alteracao.csv')
-    homologado.save('homologado.csv')
-
-    data_handler = DataHandler('alteracao.csv', 'homologado.csv')
+    data_handler = DataHandler()
     data_handler.import_data()  
 
     carga_generator = CargaGenerator(data_handler, mes_pagamento)
@@ -99,25 +88,11 @@ def gerar_cargas():
 
     carga_generator.criar_carga(carga)
  
-    excluir_arquivos_csv()
-
     mensagem = "Obrigado por usar o Gerador de Pagamento. As Cargas Suplementares foram Geradas com Sucesso!"
 
     return render_template('index.html', mensagem_sucesso = mensagem, dict_mes=dict_mes)
 
 
-def excluir_arquivos_csv():
-    # Obtenha o caminho para os arquivos CSV gerados
-    alteracao = "alteracao.csv"
-    homologado = "homologado.csv"
-
-    # Exclua os arquivos CSV se eles existirem
-    if os.path.exists(alteracao):
-        os.remove(alteracao)
-    
-    if os.path.exists(homologado):
-        os.remove(homologado)
-    
 @app.route('/processar', methods=['POST'])
 def processar_formulario():
    
@@ -131,7 +106,7 @@ def processar_formulario():
     return render_template('index.html', dict_mes=dict_mes, mensagem_sucesso=mensagem_sucesso)
   
 
-webbrowser.open('http://127.0.0.1:5000')
+#webbrowser.open('http://127.0.0.1:5000')
 
 # if __name__ == '__main__':
 #     app.run(host='127.0.0.1', port=5000)

@@ -4,19 +4,14 @@ import os.path
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
-import pandas as pd
 
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets.readonly']
 
 # The ID and range of a sample spreadsheet.
-ALTERACAO = '1Yuygb6lu4j65KBxw35vzFFb52u_R2rORt0rcdVFTJR0'
-
-HOMOLOGADO = '1RR3VkqJGFASdED-uM89Nl459I8eEQHlVzf6UiyZC6nA'
-
 SAMPLE_RANGE_NAME = 'A:Z'
 
-def main(SAMPLE_SPREADSHEET_ID):
+def get_planilhas_google(SAMPLE_SPREADSHEET_ID):
     """Shows basic usage of the Sheets API.
     Prints values from a sample spreadsheet.
     """
@@ -48,13 +43,3 @@ def main(SAMPLE_SPREADSHEET_ID):
     values = result.get('values', [])
             
     return values
-
-alteracao = main(ALTERACAO)
-df = pd.DataFrame(alteracao)
-print(df)
-
-homologado = main(HOMOLOGADO)
-df = pd.DataFrame(homologado)
-print(df)
-
-
