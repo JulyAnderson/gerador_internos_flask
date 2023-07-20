@@ -1,21 +1,10 @@
 import pandas as pd
 import sys
-from quickstart import get_planilhas_google
+from quickstart import BASE_ALTERACAO, BASE_HOMOLOGADO
 
-#ID das planilhas de trabalho
-ALTERACAO = '1Yuygb6lu4j65KBxw35vzFFb52u_R2rORt0rcdVFTJR0'
-HOMOLOGADO = '1RR3VkqJGFASdED-uM89Nl459I8eEQHlVzf6UiyZC6nA'
-
-# Obtendo os dados de ALTERACAO e HOMOLOGADO
-base_alteracao = get_planilhas_google(ALTERACAO)
-base_homologado = get_planilhas_google(HOMOLOGADO)
 
 class DataHandler:
     """Essa classe recebe duas planilhas do google e retornam dois dataframes bases"""
-    def __init__(self):
-        self.df = None
-        self.df2 = None    
-
     def import_data(self):
         # Lista das colunas necessárias para a tabela ALTERACAO
         colunas_alteracao = [
@@ -25,7 +14,7 @@ class DataHandler:
         ]
 
         # Criar DataFrame diretamente com as colunas especificadas
-        self.df = pd.DataFrame(base_alteracao, columns=base_alteracao[0]).drop(0, axis=0)
+        self.df = pd.DataFrame(BASE_ALTERACAO, columns=BASE_ALTERACAO[0]).drop(0, axis=0)
         self.df = self.df[colunas_alteracao]
 
         # Lista das colunas necessárias para a tabela HOMOLOGADO
@@ -35,7 +24,7 @@ class DataHandler:
         ]
 
         # Criar DataFrame diretamente com as colunas especificadas
-        self.df2 = pd.DataFrame(base_homologado, columns=base_homologado[0]).drop(0, axis=0)
+        self.df2 = pd.DataFrame(BASE_HOMOLOGADO, columns=BASE_HOMOLOGADO[0]).drop(0, axis=0)
         self.df2 = self.df2[colunas_homologado]
 
         return self.df, self.df2
@@ -53,7 +42,7 @@ class DataHandler:
             "Entrada Intervalo 01", "Saída 01", "Entrada 02", "Saída 02"
         ]
         # Preencher valores ausentes com '--'
-        self.alteracao.fillna('--', inplace=True)
+        self.alteracao=self.alteracao.fillna('--')
 
         # Filtrar colunas relevantes da tabela HOMOLOGADO
         self.homologado = self.df2[
@@ -61,7 +50,7 @@ class DataHandler:
              "AP", "HL", "HLE", "Horas Compensadas", "C.H. Semanal"]
         ]
         # Preencher valores ausentes com '--'
-        self.homologado.fillna('--', inplace=True)
+        self.homologado = self.homologado.fillna('--')
 
         return self.alteracao, self.homologado
 
@@ -86,23 +75,24 @@ class DataHandler:
         return alteracoes_filtradas
 
     def carga_suplementar(self, mes_pagamento):
+        # Aumentar o limite de recursão para lidar com grandes conjuntos de dados
+        sys.setrecursionlimit(10 ** 6)
+
         # Filtrar colunas relevantes da tabela de CARGA SUPLEMENTAR
         self.carga = self.df[['MATRICULA', 'Escolha uma opção', 'DIA DE REALIZAÇÃO DA CARGA SUPLEMENTAR', 'QUANTIDADE DE HORAS:']]
-
-        # Filtrar colunas relevantes da tabela HOMOLOGADO
-        self.nomes = self.df2[["Mat", "Nome"]]
+        self.carga = self.carga.rename(columns={'MATRICULA':'Mat',
+                                                'Escolha uma opção':'Escolha uma opção', 
+                                                'DIA DE REALIZAÇÃO DA CARGA SUPLEMENTAR':'DIA DE REALIZAÇÃO DA CARGA SUPLEMENTAR',
+                                                'QUANTIDADE DE HORAS:':'QUANTIDADE DE HORAS:'})
 
         # Filtrar registros com 'Escolha uma opção' igual a 'CARGA SUPLEMENTAR'
         self.carga = self.carga[self.carga['Escolha uma opção'] == 'CARGA SUPLEMENTAR']
 
         # Remover coluna 'Escolha uma opção'
-        self.carga.drop('Escolha uma opção', axis=1, inplace=True)
-
-        # Aumentar o limite de recursão para lidar com grandes conjuntos de dados
-        sys.setrecursionlimit(10 ** 6)
+        self.carga= self.carga.drop('Escolha uma opção', axis=1)
 
         # Converter MATRICULA para tipo numérico e QUANTIDADE DE HORAS: para tipo float
-        self.carga['MATRICULA'] = pd.to_numeric(self.carga['MATRICULA'], errors='ignore', downcast='integer')
+        self.carga['Mat'] = pd.to_numeric(self.carga['Mat'], errors='ignore', downcast='integer')
         self.carga['QUANTIDADE DE HORAS:'] = self.carga['QUANTIDADE DE HORAS:'].str.replace(',', '.')
         self.carga['QUANTIDADE DE HORAS:'] = pd.to_numeric(self.carga['QUANTIDADE DE HORAS:'], downcast='float')
 
@@ -123,25 +113,27 @@ class DataHandler:
         self.carga = self.carga[(self.carga['DIA DE REALIZAÇÃO DA CARGA SUPLEMENTAR'].dt.month == mes_pagamento)]
 
         # Calcular a soma das horas para cada MATRICULA e obter os dias de realização da carga
-        self.soma_horas = self.carga.groupby('MATRICULA')['QUANTIDADE DE HORAS:'].sum().reset_index().set_index('MATRICULA')
-        self.soma_horas['DIA'] = self.carga.groupby('MATRICULA')['DIA DE REALIZAÇÃO DA CARGA SUPLEMENTAR'].agg(lambda x: x.dt.day.tolist())
+        self.soma_horas = self.carga.groupby('Mat')['QUANTIDADE DE HORAS:'].sum().reset_index()
+        self.soma_horas['DIA'] = self.carga.groupby('Mat')['DIA DE REALIZAÇÃO DA CARGA SUPLEMENTAR']\
+        .agg(lambda x: x.dt.day.tolist()).tolist()
 
-        # Definir 'Mat' como índice na tabela de nomes
-        self.nomes.set_index('Mat', inplace=True)
+        # Filtrar colunas relevantes da tabela HOMOLOGADO
+        self.nomes = self.df2[["Mat", "Nome"]]
         
-
-        # Juntar a soma das horas com os nomes
-        self.carga_mes = self.soma_horas.join(self.nomes)
-
-        # Resetar o índice
-        self.carga_mes = self.carga_mes.reset_index()
+        # Converte 'Mat' series em self.nomes para tipo numérico (int ou float)
+        self.nomes['Mat'] = self.nomes['Mat'].astype(int)
+                
+        # Merge das tabelas usando a coluna 'Mat' como chave
+        self.carga_mes = self.soma_horas.merge(self.nomes, on='Mat')
 
         # Converter a coluna 'MATRICULA' para tipo inteiro
-        self.carga_mes['MATRICULA'] = self.carga_mes['MATRICULA'].astype(int)
+        self.carga_mes['Mat'] = self.carga_mes['Mat'].astype(int)
 
         # Renomear as colunas
         self.carga_mes = self.carga_mes.rename(
-            columns={'MATRICULA': 'Mat', 'Nome': 'Nome', 'DIA': 'Dias de Carga', 'QUANTIDADE DE HORAS:': 'Carga Total'}
-        )[['Mat', 'Nome', 'Dias de Carga', 'Carga Total']]
-
+            columns={'DIA': 'Dias de Carga', 'QUANTIDADE DE HORAS:': 'Carga Total'}
+            )[['Mat', 'Nome', 'Dias de Carga', 'Carga Total']]
+        
         return self.carga_mes
+    
+
