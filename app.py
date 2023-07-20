@@ -106,9 +106,9 @@ def processar_formulario():
     return render_template('index.html', dict_mes=dict_mes, mensagem_sucesso=mensagem_sucesso)
   
 
-#webbrowser.open('http://127.0.0.1:5000')
+webbrowser.open('http://127.0.0.1:5000')
 
-# if __name__ == '__main__':
-#     app.run(host='127.0.0.1', port=5000)
+if __name__ == '__main__':
+    app.run(host='127.0.0.1', port=5000)
 
-app.run(debug=True)
+# app.run(debug=True)

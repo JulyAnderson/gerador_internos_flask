@@ -197,9 +197,9 @@ Horário Homologado:""")
         self.criar_tabela_homologado(homologado_filtrado)
         self.criar_horario_alterado_interno()
         self.criar_tabela_alteracoes(alteracoes_filtradas)
-        self.criar_responsavel_interno()
-        self.numero_atual += 1 
+        self.criar_responsavel_interno()        
         nome_interno = f'Interno nº{self.numero_atual}-{self.ano_atual} - Alteração de horário de {homologado_filtrado.iloc[0]["Nome"]}-{self.dict_mes[self.mes_pagamento]}{self.ano_atual}.docx'
         self.documento.save(f'interno/{nome_interno}')
+        self.numero_atual += 1 
 
 
